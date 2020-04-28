@@ -19,5 +19,5 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
-      - run: julia -e "using Pkg; Pkg.activate(\".\"); Pkg.rm("YPPL_Parser"); Pkg.rm("YPPL_Diagnosis") Pkg.add(PackageSpec(url=\"https://github.com/yiyuezhuo/YPPL_Parser\")); Pkg.add(PackageSpec(url=\"https://github.com/yiyuezhuo/YPPL_Diagnosis\"))"
+      - run: julia -e "using Pkg; Pkg.activate(\".\"); Pkg.rm(\"YPPL_Parser\"); Pkg.rm(\"YPPL_Diagnosis\"); Pkg.add(PackageSpec(url=\"https://github.com/yiyuezhuo/YPPL_Parser\")); Pkg.add(PackageSpec(url=\"https://github.com/yiyuezhuo/YPPL_Diagnosis\"))"
       - uses: julia-actions/julia-runtest@master
