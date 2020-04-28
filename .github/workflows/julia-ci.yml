@@ -20,8 +20,8 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       - run: |
-          from subprocess import run
-          run(['julia', '-e',
+          from subprocess import call
+          call(['julia', '-e',
               'using Pkg;'
               'Pkg.activate(".");'
               'Pkg.rm("YPPL_Parser");'
