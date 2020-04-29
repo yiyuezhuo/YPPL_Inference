@@ -5,7 +5,7 @@ using Test
 @time using YPPL_Inference
 @time using DistributionsAD
 
-using YPPL_Inference: HMCSamplerInfo, HMCState, HMCStateCached, sampling, extract
+using YPPL_Inference: HMCSamplerInfo, HMCState, HMCStateCached, HMCWarmupState, HMCWarmupSamplerInfo, sampling, sampling_split, extract, extract_full, setup
 using YPPL_Parser.Examples.ref_eight_schools_non_centered: decode, reference_mean
 import DataFrames: insertcols!
 
@@ -17,12 +17,26 @@ eps = 1e-1
 L = 15
 
 sampler_info = HMCSamplerInfo(likeli, eps, size_p, L)
-state = HMCState(theta0, likeli(theta0))
+state = HMCState(likeli, theta0)
 
-@time state_list_list, transition_list_list = sampling(state, sampler_info, M, chains)
+@time state_list_list, transition_list_list = sampling(sampler_info, state, M, chains)
 posterior = extract(state_list_list)
 
 df = mcmc_summary(decode(extract(state_list_list)))
+insertcols!(df, 1, :params => [["mu", "tau"]; ["theta[$i]" for i in 1:8]])
+println(df)
+
+@test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+
+hmc_warmup_sampler_info, hmc_warmup_state = setup(likeli, 10, HMCWarmupSamplerInfo, HMCWarmupState)
+
+@time warm_state_list, warm_transition_list, state_list, transition_list = sampling_split(
+    hmc_warmup_sampler_info, hmc_warmup_state, 500,
+    HMCSamplerInfo, HMCState, 500,
+    4
+)
+posterior = extract_full(state_list)
+df = mcmc_summary(decode(posterior))
 insertcols!(df, 1, :params => [["mu", "tau"]; ["theta[$i]" for i in 1:8]])
 println(df)
 
