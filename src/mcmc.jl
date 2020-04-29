@@ -2,8 +2,15 @@ abstract type ChainState end;
 abstract type SamplerInfo end;
 abstract type TransitionInfo end;
 
+"""
+Use to select implementation for performance benchmark
+"""
+abstract type Impl end
 
-function Leapfrog(likeli::Function, theta_tilde::AbstractVector{T}, r_tilde::AbstractVector{T},  eps::T) where T
+
+function Leapfrog(likeli::Function, theta_tilde::AbstractVector{T}, 
+                  r_tilde::AbstractVector{T}, eps::T
+                  ) where T
     grad = similar(theta_tilde)
 
     gradient!(grad, likeli, theta_tilde) # for type stable
@@ -13,10 +20,11 @@ function Leapfrog(likeli::Function, theta_tilde::AbstractVector{T}, r_tilde::Abs
     gradient!(grad, likeli, theta_tilde)
     r_tilde = r_tilde + (eps/2) * grad
     return theta_tilde, r_tilde
-end
+end              
 
-function LeapfrogCache(likeli::Function, theta_tilde::AbstractVector{T}, r_tilde::AbstractVector{T},  
-                       eps::T, grad_cached::AbstractVector{T}) where T
+function LeapfrogCache(likeli::Function, theta_tilde::AbstractVector{T}, 
+                       r_tilde::AbstractVector{T}, eps::T, 
+                       grad_cached::AbstractVector{T}) where T
     r_tilde = r_tilde + (eps/2) * grad_cached
     theta_tilde = theta_tilde + eps * r_tilde
 
@@ -26,6 +34,25 @@ function LeapfrogCache(likeli::Function, theta_tilde::AbstractVector{T}, r_tilde
     return theta_tilde, r_tilde, grad_cached_new
 end
 
+function Leapfrog(likeli::Function, theta_tilde::AbstractVector{T}, 
+                  r_tilde::AbstractVector{T}, eps::T,
+                  L::Int) where T
+    grad = similar(theta_tilde)
+    grad_cached = gradient!(grad, likeli, theta_tilde)
+    for i in 1:L
+        theta_tilde, r_tilde, grad_cached = LeapfrogCache(likeli, theta_tilde, r_tilde, eps, grad_cached)
+    end
+    return theta_tilde, r_tilde, grad_cached
+end
+
+function LeapfrogCache(likeli::Function, theta_tilde::AbstractVector{T},
+                       r_tilde::AbstractVector{T}, eps::T, 
+                       L::Int, grad_cached::AbstractVector{T}) where T
+    for i in 1:L
+        theta_tilde, r_tilde, grad_cached = LeapfrogCache(likeli, theta_tilde, r_tilde, eps, grad_cached)
+    end
+    return theta_tilde, r_tilde, grad_cached
+end
 
 function FindReasonableEpsilon(likeli::Function, theta::AbstractVector{T}) where T
     eps = 1.
@@ -96,6 +123,34 @@ function sampling(state::ChainStateT, sampler_info::SamplerInfoT, M::Int, chains
 
     return state_list_list, transition_list_list
 end
+
+function sampling(impl::Impl, state::ChainStateT, sampler_info::SamplerInfoT, M::Int
+    ) where {ChainStateT<:ChainState, SamplerInfoT<:SamplerInfo}
+    state_list = Vector{ChainStateT}(undef, M+1)
+    transition_list = Vector{transition_type(SamplerInfoT)}(undef, M)
+    state_list[1] = state
+
+    for i in 1:M
+        state, transition_info = NextSample(impl, sampler_info, state)
+        state_list[i+1] = state
+        transition_list[i] = transition_info
+    end
+
+    return state_list, transition_list
+end
+
+function sampling(impl::Impl, state::ChainStateT, sampler_info::SamplerInfoT, M::Int, chains::Int
+        ) where {ChainStateT<:ChainState, SamplerInfoT<:SamplerInfo}
+    state_list_list = Vector{Vector{ChainStateT}}(undef, chains)
+    transition_list_list = Vector{Vector{transition_type(SamplerInfoT)}}(undef, chains)
+
+    for i in 1:chains
+        state_list_list[i], transition_list_list[i] = sampling(impl, state, sampler_info, M)
+    end
+
+    return state_list_list, transition_list_list
+end
+
 
 function extract(state_list_list::Vector{Vector{S}}) where S <: ChainState
     chains = length(state_list_list)
