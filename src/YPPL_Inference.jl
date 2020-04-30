@@ -1,10 +1,7 @@
 module YPPL_Inference
 
 #using ForwardDiff: gradient
-using ForwardDiff: gradient!
 
-include("mcmc.jl")
-include("hmc.jl")
-include("nuts.jl")
+include("mcmc/MCMC.jl")
 
 end # module
