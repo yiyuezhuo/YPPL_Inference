@@ -1,11 +1,8 @@
-name = "YPPL_Inference"
-uuid = "4fa75a25-d952-42fa-ab2f-cd6b34c94ec2"
-authors = ["yiyuezhuo <yiyuezhuo@gmail.com>"]
-version = "0.1.0"
-
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 YPPL_Diagnosis = "f7755522-bb72-47e4-a4f1-ac7cf6a9e10b"
 YPPL_Parser = "54e4aa61-68be-4ac6-9fad-ed7868cad30c"

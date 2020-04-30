@@ -5,7 +5,10 @@ using Test
 @time using YPPL_Inference
 @time using DistributionsAD
 
-using YPPL_Inference: HMCSamplerInfo, HMCState, HMCStateCached, HMCWarmupState, HMCWarmupSamplerInfo, sampling, sampling_split, extract, extract_full, setup
+using YPPL_Inference: sampling, sampling_split, extract, extract_full, setup, 
+                      HMCSamplerInfo, HMCState, HMCStateCached, HMCWarmupState, HMCWarmupSamplerInfo,
+                      NUTSSamplerInfo, NUTSState, NUTSWarmupSamplerInfo, NUTSWarmupState
+ 
 using YPPL_Parser.Examples.ref_eight_schools_non_centered: decode, reference_mean
 import DataFrames: insertcols!
 
@@ -13,7 +16,7 @@ M = 1000
 chains = 4
 size_p = 10
 theta0 = ones(size_p)
-eps = 1e-1
+eps = 3e-1
 L = 15
 
 sampler_info = HMCSamplerInfo(likeli, eps, size_p, L)
@@ -41,3 +44,28 @@ insertcols!(df, 1, :params => [["mu", "tau"]; ["theta[$i]" for i in 1:8]])
 println(df)
 
 @test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+
+nuts_warmup_sampler_info, nuts_warmup_state = setup(likeli, size_p, NUTSWarmupSamplerInfo, NUTSWarmupState)
+
+@time warmup_state_list, warmup_transition_list, state_list, transition_list = sampling_split(
+    nuts_warmup_sampler_info, nuts_warmup_state, 500,
+    NUTSSamplerInfo, NUTSState, 500, 
+    4)
+df = state_list |> extract_full |> decode |> mcmc_summary
+println(df)
+
+@test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+
+
+@time using Plots
+unicodeplots()
+
+@time plot([state.eps for state in warmup_state_list[1]])
+title!("eps")
+
+plot([log(state.eps) for state in warmup_state_list[1]])
+title!("log(eps)")
+
+plot([state.theta[1] for state in state_list[1]])
+title!("mu")
+

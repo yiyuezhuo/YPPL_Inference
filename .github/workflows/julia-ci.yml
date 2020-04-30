@@ -23,7 +23,7 @@ jobs:
           from subprocess import call
           call(['julia', '-e',
               'using Pkg;'
-              'Pkg.activate(".");'
+              'Pkg.activate("./test");'
               'Pkg.rm("YPPL_Parser");'
               'Pkg.rm("YPPL_Diagnosis");'
               'Pkg.add(PackageSpec(url="https://github.com/yiyuezhuo/YPPL_Parser"));'

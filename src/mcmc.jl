@@ -32,9 +32,10 @@ function LeapfrogCache(likeli::Function, theta_tilde::AbstractVector{T},
     theta_tilde = theta_tilde + eps * r_tilde
 
     grad = similar(theta_tilde)
-    grad_cached_new = gradient!(grad, likeli, theta_tilde)
-    r_tilde = r_tilde + (eps/2) * grad_cached_new
-    return theta_tilde, r_tilde, grad_cached_new
+    #grad_cached_new = gradient!(grad, likeli, theta_tilde)
+    gradient!(grad, likeli, theta_tilde)
+    r_tilde = r_tilde + (eps/2) * grad
+    return theta_tilde, r_tilde, grad
 end
 
 function Leapfrog(likeli::Function, theta_tilde::AbstractVector{T}, 
@@ -81,56 +82,6 @@ function FindReasonableEpsilon(likeli::Function, theta::AbstractVector{T}) where
     end
     return eps
 end
-
-#=
-
-"""
-Examples:
-
-```
-using YPPL_Inference.Examples.eight_schools_non_centered
-using YPPL_Inference: HMCSamplerInfo, HMCState, sampling
-
-likeli = eight_schools_non_centered.likeli
-theta0 = ones(eight_schools_non_centered.size_p)
-M = 2000
-eps = 1e-1
-L = 15
-
-sampler_info = HMCSamplerInfo(likeli, eps, size_p, L)
-state = HMCState(theta0, likeli(theta0))
-
-sampling(state, sampler_info, M)
-```
-"""
-function sampling(state::ChainStateT, sampler_info::SamplerInfoT, M::Int
-    ) where {ChainStateT<:ChainState, SamplerInfoT<:SamplerInfo}
-
-    state_list = Vector{ChainStateT}(undef, M+1)
-    transition_list = Vector{transition_type(SamplerInfoT)}(undef, M)
-    state_list[1] = state
-
-    for i in 1:M
-        state, transition_info = NextSample(sampler_info, state)
-        state_list[i+1] = state
-        transition_list[i] = transition_info
-    end
-
-    return state_list, transition_list
-end
-
-function sampling(state::ChainStateT, sampler_info::SamplerInfoT, M::Int, chains::Int
-        ) where {ChainStateT<:ChainState, SamplerInfoT<:SamplerInfo}
-    state_list_list = Vector{Vector{ChainStateT}}(undef, chains)
-    transition_list_list = Vector{Vector{transition_type(SamplerInfoT)}}(undef, chains)
-
-    for i in 1:chains
-        state_list_list[i], transition_list_list[i] = sampling(state, sampler_info, M)
-    end
-
-    return state_list_list, transition_list_list
-end
-=#
 
 # default implementation use NextSample2 now.
 function sampling(sampler_info::SamplerInfoT, state::ChainStateT, M::Int
@@ -218,6 +169,16 @@ function sampling_split(sampler_info::SamplerInfoT, state::ChainStateT, M1::Int,
                         sampler_info_constructor::Type, state_constructor::Type, M2::Int,
                         chains::Int) where {ChainStateT<:ChainState, SamplerInfoT<:SamplerInfo}
     [sampling_split(sampler_info, state, M1, sampler_info_constructor, state_constructor, M2) for i in 1:chains] |> zip4
+end
+
+#
+
+function NextSample(::UseNextSample, info::SamplerInfo, prev::ChainState)
+    NextSample(info, prev)
+end
+
+function NextSample(::UseNextSample2, info::SamplerInfo, prev::ChainState)
+    NextSample2(info, prev)
 end
 
 

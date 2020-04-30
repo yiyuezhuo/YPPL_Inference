@@ -133,10 +133,3 @@ function NextSample(info::AbstractHMCSamplerInfo, prev::S) where S <: AbstractHM
 end
 
 
-function NextSample(::UseNextSample, info::AbstractHMCSamplerInfo, prev::AbstractHMCState)
-    NextSample(info, prev)
-end
-
-function NextSample(::UseNextSample2, info::AbstractHMCSamplerInfo, prev::AbstractHMCState)
-    NextSample2(info, prev)
-end
