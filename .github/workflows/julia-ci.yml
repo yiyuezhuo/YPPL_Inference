@@ -22,12 +22,7 @@ jobs:
       - run: |
           from subprocess import call
           call(['julia', '-e',
-              'using Pkg;'
-              'Pkg.activate("./test");'
-              'Pkg.rm("YPPL_Parser");'
-              'Pkg.rm("YPPL_Diagnosis");'
-              'Pkg.add(PackageSpec(url="https://github.com/yiyuezhuo/YPPL_Parser"));'
-              'Pkg.add(PackageSpec(url="https://github.com/yiyuezhuo/YPPL_Diagnosis"))'
-          ])
+          'using Pkg;'
+          'Pkg.Registry.add(RegistrySpec(url = "https://github.com/yiyuezhuo/YYZRegistry.git"))'])
         shell: python
       - uses: julia-actions/julia-runtest@master
