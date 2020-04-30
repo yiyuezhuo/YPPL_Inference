@@ -22,7 +22,9 @@ jobs:
       - run: |
           from subprocess import call
           call(['julia', '-e',
-          'using Pkg;'
-          'Pkg.Registry.add(RegistrySpec(url = "https://github.com/yiyuezhuo/YYZRegistry.git"))'])
+                'using Pkg;'
+                'Pkg.Registry.add(RegistrySpec(url = "https://github.com/JuliaRegistries/General.git"));'
+                'Pkg.Registry.add(RegistrySpec(url = "https://github.com/yiyuezhuo/YYZRegistry.git"));'
+                'Pkg.Registry.status()'])
         shell: python
       - uses: julia-actions/julia-runtest@master
