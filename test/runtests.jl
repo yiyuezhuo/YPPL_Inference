@@ -9,7 +9,7 @@ using YPPL_Inference.MCMC: sampling, sampling_split, extract, extract_full, setu
                       HMCSamplerInfo, HMCState, HMCStateCached, HMCWarmupState, HMCWarmupSamplerInfo,
                       NUTSSamplerInfo, NUTSState, NUTSWarmupSamplerInfo, NUTSWarmupState
  
-using YPPL_Parser.Examples.ref_eight_schools_non_centered: decode, reference_mean
+using YPPL_Parser.Examples.ref_eight_schools_non_centered: decode, reference_mean, schools_dat
 import DataFrames: insertcols!
 
 M = 1000
@@ -29,7 +29,7 @@ df = mcmc_summary(decode(extract(state_list_list)))
 insertcols!(df, 1, :params => [["mu", "tau"]; ["theta[$i]" for i in 1:8]])
 println(df)
 
-@test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+@test all(abs.(df.mean .- reference_mean) .< df.se_mean*4)
 
 hmc_warmup_sampler_info, hmc_warmup_state = setup(likeli, 10, HMCWarmupSamplerInfo, HMCWarmupState)
 
@@ -43,7 +43,7 @@ df = mcmc_summary(decode(posterior))
 insertcols!(df, 1, :params => [["mu", "tau"]; ["theta[$i]" for i in 1:8]])
 println(df)
 
-@test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+@test all(abs.(df.mean .- reference_mean) .< df.se_mean*4)
 
 nuts_warmup_sampler_info, nuts_warmup_state = setup(likeli, size_p, NUTSWarmupSamplerInfo, NUTSWarmupState)
 
@@ -54,7 +54,7 @@ nuts_warmup_sampler_info, nuts_warmup_state = setup(likeli, size_p, NUTSWarmupSa
 df = state_list |> extract_full |> decode |> mcmc_summary
 println(df)
 
-@test all(abs.(df.mean .- reference_mean) .< df.se_mean*3)
+@test all(abs.(df.mean .- reference_mean) .< df.se_mean*4)
 
 
 @time using Plots
@@ -69,3 +69,4 @@ title!("log(eps)")
 plot([state.theta[1] for state in state_list[1]])
 title!("mu")
 
+include("./test_laplace.jl")

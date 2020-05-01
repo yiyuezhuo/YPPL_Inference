@@ -28,4 +28,4 @@ jobs:
                 'Pkg.Registry.status()'])
         shell: python
       - uses: julia-actions/julia-runtest@master
-      - run: julia ./plots.jl
+      - run: julia test/plots.jl
