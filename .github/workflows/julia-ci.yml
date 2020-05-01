@@ -35,3 +35,4 @@ jobs:
                 'Pkg.activate("./test");'
                 'Pkg.develop(PackageSpec(path="."));'
                 'include("test/plots.jl");'])
+        shell: python
