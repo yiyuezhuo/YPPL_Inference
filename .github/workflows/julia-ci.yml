@@ -28,11 +28,3 @@ jobs:
                 'Pkg.Registry.status()'])
         shell: python
       - uses: julia-actions/julia-runtest@master
-      - run: |
-          from subprocess import call
-          call(['julia', '-e',
-                'using Pkg;'
-                'Pkg.activate("./test");'
-                'Pkg.develop(PackageSpec(path="."));'
-                'include("test/plots.jl");'])
-        shell: python
